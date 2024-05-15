@@ -1,4 +1,5 @@
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QDialog, QWidget, QLineEdit, QPushButton, QFileDialog
 
 class WelcomeDialog(QDialog):
@@ -6,8 +7,9 @@ class WelcomeDialog(QDialog):
 
     def __init__(self, parent: QWidget | None = None, flags: Qt.WindowType = Qt.WindowType.Dialog) -> None:
         super().__init__(parent, flags)
-        self.resize(470, 80)
+        self.setFixedSize(470, 80)
         self.setWindowTitle("Data Analysis")
+        self.setWindowIcon(QIcon("./res/logo.png"))
         self.btnFileChoose = QPushButton(self)
         self.btnFileChoose.setGeometry(350, 20, 100, 30)
         self.btnFileChoose.setText("选择文件...")
