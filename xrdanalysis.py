@@ -14,12 +14,12 @@ class DisplayType(Enum):
     Line3DChart = 3 # 3D折线图
 
 class CircustanceData:
-    def __init__(self, name: str, theta: list, intensity: list):
+    def __init__(self, name: str, theta: np.array, intensity: np.array):
         self.name = name
-        self.theta = theta
-        self.intensity = intensity
+        self.theta, self.intensity = theta, intensity
 
     def display(self):
+        self.debugOutput()
         plt.plot(self.theta, self.intensity)
         plt.xlabel('2θ (degree)')
         plt.ylabel('Intensity (a.u.)')
@@ -45,19 +45,45 @@ def toCSV(filePath: str) -> str:
     if os.path.splitext(filePath)[-1] != '.txt':
         raise FileExistsError('the input file should be .txt')
     
-    csvLines = []
+    # 标准数据格式：第一行
+    csvLines = ['h,k,l,d (Å),F(real),F(imag),|F|,2θ,I,M,ID(λ),Phase']
+
+    # 标准格式关键字
+    standardKeyword = ['h', 'k', 'l', 'd', '(Å)', 'F(real)', 
+                       'F(imag)', '|F|', '2θ', 'I', 'M', 'ID(λ)', 'Phase']
+    isStandard = False
 
     # 处理原始txt
-    with open(filePath, 'r') as file:
+    with open(filePath, 'r', encoding='utf-8') as file:
         content = file.readlines()
         for line in content:
             keywords = line.split()
-            csvLines.append(','.join(str(keyword) for keyword in keywords)) # 生成CSV标准形式
+
+            # 筛选标准格式
+            flag = True # 标记筛选标准格式
+            for i in range(len(keywords)):
+                if keywords[i] != standardKeyword[i]:
+                    flag = False
+                    break
+            if flag:
+                isStandard = True
+                continue
+            
+            # 数字生成csv格式
+            flag = True # 标记筛选数字
+            for keyword in keywords:
+                if not isNumber(keyword):
+                    flag = False
+            if flag:
+                csvLines.append(','.join(str(keyword) for keyword in keywords)) # 生成CSV标准形式
         file.close()
+    
+    if not isStandard:
+        raise ValueError('txt file does not follow standard format')
     
     csvPath = os.path.splitext(filePath)[0] + '.csv'    # 在工作目录下生成.csv
     print('{} is generated'.format(csvPath))
-    with open(csvPath, 'w+') as file:
+    with open(csvPath, 'w+', encoding='utf-8') as file:
         for line in csvLines:
             file.write(line + '\n')
         file.close()
@@ -73,20 +99,13 @@ def toCSV(filePath: str) -> str:
 '''
 def XRDAnalysisPro(filePath, 
                    displayType: DisplayType = DisplayType.Empty,
-                   compare: bool = False,
-                   compareIndex: list = []) -> None:
+                   compare: bool = False) -> None:
     # 使用多参数传递主要是为了提供丰富的接口和这个项目的PyQt UI对接
 
     # 函数预处理：检测数据类型、参数合法性
     if type(filePath).__name__ == 'list':
         isFiles = True
         path = filePath     # 其实可以直接用filePath，但是为了保证数据安全与后续操作的通用性，新开一个path
-        if compare:
-            # 检测compareIndex参数合法性
-            tempIndex = compareIndex
-            for index in tempIndex: # 防止更改列表数据导致的问题
-                if index >= len(filePath):
-                    compareIndex.remove(index)
     elif type(filePath).__name__ == 'str':
         isFiles = False
         path = [filePath]
@@ -107,9 +126,10 @@ def XRDAnalysisPro(filePath,
         csv = toCSV(file) # 标准化为CSV
         data = pd.read_csv(csv)
         fileName = os.path.basename(csv)
+        print(data)
         data.sort_values(by='2θ', inplace=True)
         # 新建一个基础数据对象存入database
-        database.append(CircustanceData(fileName, data['2θ'], data['I']))
+        database.append(CircustanceData(fileName, np.array(data['2θ']), np.array(data['I'])))
     # 生成图像
     match displayType:
         case DisplayType.LineChart:
@@ -117,5 +137,6 @@ def XRDAnalysisPro(filePath,
 
 
 if __name__ == '__main__':
-    XRDAnalysisPro('E:\Codes\DataAnalysis\data\C Fe2.4.txt', DisplayType.LineChart, 
-                   compare=True, compareIndex=[])
+    XRDAnalysisPro('E:\Codes\DataAnalysis\data\C Fe2.4.txt', 
+                   displayType=DisplayType.LineChart, 
+                   compare=True)

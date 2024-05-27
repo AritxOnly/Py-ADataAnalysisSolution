@@ -1,8 +1,6 @@
-# 南京大学商学院Python大作业：数据分析
+# **Python For Chemist**
 
 ### 项目介绍
-
-#### 主题：**Python For Chemist**
 
 - 基于matplotlib制作的常见化学实验数据可视化分析
 
