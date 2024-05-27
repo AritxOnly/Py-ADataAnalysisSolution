@@ -7,7 +7,7 @@ import os
 import webbrowser
 from enum import Enum
 
-import dataanalysis as anly
+import simpledataanalysis as anly
 
 # 负责存储模块类型的枚举对象
 class AnalysisType(Enum):
