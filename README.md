@@ -14,9 +14,3 @@
 - UI使用PyQt6完成
 
 - 数据分析与可视化使用matplotlib
-
-### 关于我们
-
-[Aritx Zhou](https://github.com/AritxOnly)
-
-[CHEN Qiao](https://github.com/qiao411)
